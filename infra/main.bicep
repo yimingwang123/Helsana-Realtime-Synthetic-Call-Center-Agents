@@ -28,6 +28,9 @@ param enableZeroTrust bool
 param principalId string = ''
 var principalType = empty(runningOnGh) && empty(runningOnAdo) ? 'User' : 'ServicePrincipal'
 
+@description('Skip role assignments if they already exist (set to true on subsequent deployments)')
+param skipRoleAssignments bool = false
+
 param openAiRealtimeName string = ''
 
 param searchIndexName string = 'documents'
@@ -264,7 +267,7 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.4.0' = {
     } : {
       defaultAction: 'Allow'
     }
-    roleAssignments: [
+    roleAssignments: skipRoleAssignments ? [] : [
       {
         roleDefinitionIdOrName: 'Key Vault Secrets User'
         principalId: appIdentity.outputs.principalId
@@ -344,6 +347,7 @@ module account 'modules/ai/account.bicep' = {
     appIdentityPrincipalId: appIdentity.outputs.principalId
     principalId: principalId
     principalType: principalType
+    skipRoleAssignments: skipRoleAssignments
   }
 }
 
@@ -397,6 +401,7 @@ module aiFoundryAppRbac 'modules/ai/rbac.bicep' = {
     principalId: appIdentity.outputs.principalId
     principalType: 'ServicePrincipal'
     projectResourceId: aiFoundryProject.outputs.projectId
+    skipRoleAssignments: skipRoleAssignments
   }
 }
 
@@ -408,6 +413,7 @@ module aiFoundryUserRbac 'modules/ai/rbac.bicep' = if (!empty(principalId)) {
     principalId: principalId
     principalType: principalType
     projectResourceId: aiFoundryProject.outputs.projectId
+    skipRoleAssignments: skipRoleAssignments
   }
 }
 
@@ -429,6 +435,7 @@ module registry 'modules/app/registry.bicep' = {
     identityName: appIdentity.outputs.name
     tags: tags
     name: '${abbrs.containerRegistryRegistries}${resourceToken}'
+    skipRoleAssignments: skipRoleAssignments
   }
   scope: resGroup
 }
@@ -443,6 +450,7 @@ module cosmosdb 'modules/cosmos/cosmos.bicep' = {
     principalType: principalType
     tags: tags
     enableZeroTrust: enableZeroTrust
+    skipRoleAssignments: skipRoleAssignments
   }
   scope: resGroup
 }
@@ -648,7 +656,7 @@ module searchService 'br/public:avm/res/search/search-service:0.7.1' = {
     semanticSearch: 'standard'
     publicNetworkAccess: enableZeroTrust ? 'Disabled' : 'Enabled'
     managedIdentities: { userAssignedResourceIds: [appIdentity.outputs.identityId] }
-    roleAssignments: [
+    roleAssignments: skipRoleAssignments ? [] : [
       {
         roleDefinitionIdOrName: 'Search Index Data Reader'
         principalId: appIdentity.outputs.principalId
@@ -712,7 +720,7 @@ module storage 'br/public:avm/res/storage/storage-account:0.9.1' = {
         }
       ]
     }
-    roleAssignments: [
+    roleAssignments: skipRoleAssignments ? [] : [
       {
         roleDefinitionIdOrName: 'Storage Blob Data Reader'
         principalId: appIdentity.outputs.principalId

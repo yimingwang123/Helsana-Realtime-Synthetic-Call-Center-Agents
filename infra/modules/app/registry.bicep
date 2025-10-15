@@ -17,6 +17,9 @@ param zoneRedundancy string = 'Disabled'
 
 param identityName string
 
+@description('Skip role assignments if they already exist')
+param skipRoleAssignments bool = false
+
 // 2022-02-01-preview needed for anonymousPullEnabled
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
   name: name
@@ -36,7 +39,7 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-02-01-pr
 
 resource appIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = { name: identityName }
 
-resource acrPullRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource acrPullRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!skipRoleAssignments) {
   scope: containerRegistry
   name: guid(subscription().id, resourceGroup().id, appIdentity.id, 'acrPullRole')
   properties: {

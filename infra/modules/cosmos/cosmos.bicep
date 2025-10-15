@@ -10,6 +10,9 @@ resource appIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-3
 param principalId string
 param principalType string
 
+@description('Skip role assignments if they already exist')
+param skipRoleAssignments bool = false
+
 // Create Cosmos DB account
 resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
   name: cosmosDbAccountName
@@ -176,7 +179,7 @@ resource ProductUrlContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases
 
 
 // Assign the User Assigned Identity Contributor role to the Cosmos DB account
-resource cosmosDbAccountRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+resource cosmosDbAccountRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = if (!skipRoleAssignments) {
   name: guid(cosmosDbAccount.id, appIdentity.id, 'cosmosDbContributor')
   scope: cosmosDbAccount
   properties: {
@@ -186,7 +189,7 @@ resource cosmosDbAccountRoleAssignment 'Microsoft.Authorization/roleAssignments@
   }
 }
 
-resource cosmosDbAccountRoleAssignmentPrincipal 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+resource cosmosDbAccountRoleAssignmentPrincipal 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = if (!skipRoleAssignments) {
   name: guid(cosmosDbAccount.id, principalId, 'cosmosDbContributor')
   scope: cosmosDbAccount
   properties: {
@@ -198,7 +201,7 @@ resource cosmosDbAccountRoleAssignmentPrincipal 'Microsoft.Authorization/roleAss
 
 var cosmosDataContributor = '00000000-0000-0000-0000-000000000002'
 
-resource sqlRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2021-04-15' = {
+resource sqlRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2021-04-15' = if (!skipRoleAssignments) {
   name: guid(cosmosDataContributor, appIdentity.id, cosmosDbAccount.id)
   parent: cosmosDbAccount
   properties: {
@@ -208,7 +211,7 @@ resource sqlRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignm
   }
 }
 
-resource sqlRoleAssignmentPrincipal 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2021-04-15' = {
+resource sqlRoleAssignmentPrincipal 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2021-04-15' = if (!skipRoleAssignments) {
   name: guid(cosmosDataContributor, principalId, cosmosDbAccount.id)
   parent: cosmosDbAccount
   properties: {

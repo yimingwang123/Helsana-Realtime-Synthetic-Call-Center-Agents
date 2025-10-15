@@ -26,6 +26,9 @@ param principalId string = ''
 @description('Principal type for owner/admin RBAC')
 param principalType string = 'User'
 
+@description('Skip role assignments if they already exist')
+param skipRoleAssignments bool = false
+
 // Create AI Services Account (AI Foundry resource)
 resource account 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = {
   name: accountName
@@ -86,7 +89,7 @@ resource keyVaultSecretKey2 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = if 
 }
 
 // RBAC assignments
-resource cognitiveServicesUserRoleApp 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(appIdentityPrincipalId)) {
+resource cognitiveServicesUserRoleApp 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(appIdentityPrincipalId) && !skipRoleAssignments) {
   name: guid(account.id, appIdentityPrincipalId, 'CognitiveServicesUser')
   scope: account
   properties: {
@@ -96,7 +99,7 @@ resource cognitiveServicesUserRoleApp 'Microsoft.Authorization/roleAssignments@2
   }
 }
 
-resource cognitiveServicesUserRolePrincipal 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(principalId)) {
+resource cognitiveServicesUserRolePrincipal 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(principalId) && !skipRoleAssignments) {
   name: guid(account.id, principalId, 'CognitiveServicesUser')
   scope: account
   properties: {
@@ -106,7 +109,7 @@ resource cognitiveServicesUserRolePrincipal 'Microsoft.Authorization/roleAssignm
   }
 }
 
-resource cognitiveServicesOpenAIUserRoleApp 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(appIdentityPrincipalId)) {
+resource cognitiveServicesOpenAIUserRoleApp 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(appIdentityPrincipalId) && !skipRoleAssignments) {
   name: guid(account.id, appIdentityPrincipalId, 'CognitiveServicesOpenAIUser')
   scope: account
   properties: {
@@ -116,7 +119,7 @@ resource cognitiveServicesOpenAIUserRoleApp 'Microsoft.Authorization/roleAssignm
   }
 }
 
-resource cognitiveServicesOpenAIUserRolePrincipal 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(principalId)) {
+resource cognitiveServicesOpenAIUserRolePrincipal 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(principalId) && !skipRoleAssignments) {
   name: guid(account.id, principalId, 'CognitiveServicesOpenAIUser')
   scope: account
   properties: {

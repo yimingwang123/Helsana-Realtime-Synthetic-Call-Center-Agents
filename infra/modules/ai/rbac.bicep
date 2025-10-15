@@ -10,6 +10,9 @@ param principalType string = 'ServicePrincipal'
 @description('AI Foundry Project resource ID')
 param projectResourceId string
 
+@description('Skip role assignments if they already exist')
+param skipRoleAssignments bool = false
+
 // Azure AI Developer role definition
 // https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#azure-ai-developer
 var aiDeveloperRoleId = '64702f94-c441-49e6-a78b-ef80e0188fee'
@@ -18,7 +21,7 @@ var aiDeveloperRoleId = '64702f94-c441-49e6-a78b-ef80e0188fee'
 var projectNameFromId = last(split(projectResourceId, '/'))
 
 // Assign Azure AI Developer role
-resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!skipRoleAssignments) {
   name: guid(principalId, aiDeveloperRoleId, projectNameFromId)
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', aiDeveloperRoleId)
@@ -27,4 +30,4 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   }
 }
 
-output roleAssignmentId string = roleAssignment.id
+output roleAssignmentId string = skipRoleAssignments ? '' : roleAssignment.id
