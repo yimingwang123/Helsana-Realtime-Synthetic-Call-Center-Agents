@@ -14,17 +14,17 @@ This solution combines:
   - ***📚 Document Intelligence**: Vector search over internal knowledge base using Azure AI Search
   - ***💾 Database Operations**: CRUD operations on synthetic customer, product, and transaction data via Cosmos DB
   - ***📧 Email Automation**: Azure Logic Apps integration for outbound communication
-- **⚡ Modern Web Stack**: FastAPI backend with async WebSocket support + React TypeScript frontend, plus MCP invokation.
+- **⚡ Modern Web Stack**: FastAPI backend with async WebSocket support + React TypeScript frontend, plus MCP server invokation.
 
 ![Assistant Interface](./docs/images/Realtime-Synthetic-Call-Center-Agents.webp)
 
-The multi-agent system supports internal knowledge base queries, web search (grounded by synthetic product data from real companies like Microsoft), and database actions (read, create, update), making it ideal for showcasing AI-driven customer support and automation in call centers and retail environments.
+The multi-agent system supports internal knowledge base queries, web search (grounded by Bing Search), and database actions (read, create, update), making it ideal for showcasing AI-driven customer support and automation in call centers and retail environments.
 
 ## Security & Networking
 
 This solution supports **enterprise-grade security** with configurable Zero Trust architecture. During deployment with `azd up`, users can choose to enable Zero Trust networking for enhanced security:
 
-### Zero Trust Architecture (Optional - Selected During Deployment)
+### Zero Trust Architecture (Optional - Selected During Deployment) (**Work In Progress**) 
 The `azd up` deployment process allows users to decide whether to enable Zero Trust architecture. When enabled:
 - **All public endpoints are disabled** except for the AI Foundry/AI Services account (required for AI Search indexing skillset functionality)
 - **Virtual Network (VNet) Integration**: Container Apps Environment deployed with VNet integration using workload profiles
@@ -45,29 +45,38 @@ When Zero Trust is not enabled:
 - **Azure Key Vault**: Secure storage for sensitive configuration like API keys
 - **Azure Trusted Services**: Storage account configured to allow trusted Azure services (like AI Search) access
 
-### Benefits
-- **Flexible Security**: Choose between standard deployment or Zero Trust architecture based on requirements
-- **Enhanced Security** (Zero Trust): Backend data and services isolated from public internet when enabled
-- **Compliance Ready**: Zero Trust option supports enterprise compliance requirements  
-- **Zero-Trust Architecture**: Services authenticate using managed identities instead of connection strings
-- **AI Search Compatibility**: AI Services account maintains necessary access for AI Search operations
-- **Scalable**: VNet integration (when enabled) allows for future expansion with additional subnets and security controls
-
 ## How to get it work
 
-- [Deploy the application](#how-to-deploy)
-- Access the backend FastAPI admin interface at the backend URL from the output of `azd up`.
-- Use the FastAPI endpoints to:
-    - Ingest and manage documents for the internal knowledge base
-    - Synthesize demo data in Azure Cosmos DB (Customer, Product, Purchases tables)
-- Access the React frontend at the frontend URL from the output of `azd up`.
-- Choose one of the customer names to log in
-- Click on the microphone button or press 'P' to start voice interaction
-- Speak to interact with the AI assistant
+0.[Deploy the application](#how-to-deploy)
+
+Example: initiate deployment
+
+![azd_up_start](docs/images/azdup.png)
+
+Example: successful deployment
+
+![azd_up_final](docs/images/azd_up_final_state.png)
+1. Access the backend FastAPI admin interface at the backend URL from the output of `azd up`.
+2. Access the React frontend at the frontend URL from the output of `azd up` process
+3. In the "Admin Portal" page:
+-     Use the "Upload" tab in the admin interface to upload documents (PDF, DOCX, TXT) to populate the internal knowledge base
+![Admin_Upload](docs/images/frontend_admin_upload.png)
+-     Use the "Files" tab in the admin interface to verify the documents have been indexed and delete any unwanted files
+![Admin_Files](docs/images/frontend_admin_files.png)
+-     Use the "Synthetic Data" tab in the admin interface to create synthetic customers, products, purchases histories and customer conversations
+![Admin_SyntheticData](docs/images/frontend_admin_systheticdata.png)
+-     Use the "Dashboard" tab in the admin interface to overview on the setup status and synthetic customer conversations by topic, product and agents.
+![Admin_Dashboard](docs/images/frontend_admin_dashboard.png)
+![Admin_Dashboard_Data](docs/images/frontend_admin_dashboard_check_humanconversation.png)
+4. In the "Voice Chat" page:
+-     Choose one of the (synthesized) customer names to log in
+![Frontend_Login](docs/images/frontend_voice_chat_customer_selection.png)
+-     Select the voice you want to use and click on the microphone button to start voice interaction
+![Frontend_VoiceSelection](docs/images/frontend_voice_chat_choose_voice.png)
+-     Speak to interact with the AI assistant
+![Frontend_Chat](docs/images/frontend_voice_chat_realtime_chat.png)
 
 ## 🚀 Local Development
-
-For rapid local testing and development, use the provided automation scripts:
 
 ### Quick Start (All Services)
 ```powershell
@@ -113,8 +122,8 @@ This opens 3 terminal windows:
 - What products are currently available from your product catalog?
 - I want to take an new order with 2 units of [any product from the catalog]
 - Send an email to [your real Email address] to confirm my order. 
-- Looking at the internal knowledge base, could you tell me [any question for the document you ingested]
-- What is the latest news about [the company name you synthesized data from or one of its related brand]?
+- could you tell me more about [any question for the document you ingested]
+- What is the latest news about [anything that need up-to-date information]?
 
 ## How to deploy
 
@@ -193,10 +202,6 @@ When Zero Trust is enabled during deployment:
 - **AI Services Exception**: The AI Foundry/AI Services account maintains public access and key-based authentication to ensure compatibility with AI Search operations
 - **Container Apps**: Deployed with VNet integration for secure communication with backend services
 
-Example: initiate deployment
-![azd_up_start](docs/images/azdup.png)
-Example: successful deployment
-![azd_up_final](docs/images/azd_up_final_state.png)
 
 
 [!NOTE]
@@ -246,12 +251,6 @@ Additionally, thanks to Azure Logic Apps' extensive connector ecosystem, the sol
 - Enterprise applications and services
 
 This enables you to build complete end-to-end workflows that connect the AI assistant with your existing business processes and data sources without extensive custom coding.
-
-## Local execution
-
-Once the environment has been deployed with `azd up` you can also run the application locally.
-
-Please follow the instructions in [the instructions in `src/frontend`](./src/frontend/README.md)
 
 ## Architecture
 
@@ -340,6 +339,7 @@ The solution is built on **Azure Container Apps** with a modern, cloud-native ar
 
 **2. Internal Knowledge Base Agent**
 - Queries indexed documents via Azure AI Search
+- Automatic topic detection of uploaded documents for better orchestration
 - Performs hybrid search (keyword + vector + semantic)
 - Returns grounded responses with source citations
 
@@ -348,36 +348,11 @@ The solution is built on **Azure Container Apps** with a modern, cloud-native ar
 - Customer profile management
 - Purchase record creation and retrieval
 
-**4. Web Search Agent (AI Foundry)** ⭐ **NEW**
+**4. Web Search Agent (AI Foundry)** 
 - **Implementation**: Azure AI Foundry agent with Bing Search tool
 - **Architecture**: Stateless MCP server wrapper
 - **Grounding**: Filters results by company product URLs from synthetic data
 - **Authentication**: Azure managed identity (no API keys required)
-
-**Code Pattern:**
-```python
-# Backend calls MCP server
-async def search_web(self, query: str) -> str:
-    response = await self.mcp_client.call_tool(
-        tool_name="web_search",
-        arguments={"query": query}
-    )
-    return response["result"]
-
-# MCP server creates ephemeral thread
-async def handle_web_search(params: dict) -> str:
-    thread = await client.agents.create_thread()
-    try:
-        # Run AI Foundry agent with Bing tool
-        run = await client.agents.create_and_process_run(
-            thread_id=thread.id,
-            agent_id=agent_id,
-            instructions=params["query"]
-        )
-        return extract_response(run)
-    finally:
-        await client.agents.delete_thread(thread.id)
-```
 
 **5. Executive Assistant Agent**
 - Sends emails via Azure Logic Apps
@@ -427,51 +402,6 @@ The solution supports two deployment modes:
 - **Managed Identity**: User-assigned managed identity for secure, keyless service authentication
 - **Internal Communication**: MCP server uses internal `.internal` domain (not exposed to internet)
 
-### Data Flow Diagrams
-
-**Voice Interaction Flow:**
-```
-User Microphone 
-  → React Frontend (WebSocket client)
-  → FastAPI Backend (WebSocket proxy)
-  → Azure OpenAI Realtime API
-  → GPT-4o Realtime Model
-  → Response streaming back through WebSocket
-  → Browser audio playback
-```
-
-**Web Search Flow (AI Foundry):**
-```
-User: "What's the latest news about Microsoft?"
-  → Root Agent (routes to web search)
-  → Backend calls MCP server (HTTP POST)
-  → MCP server creates ephemeral thread
-  → AI Foundry agent executes Bing Search tool
-  → Results filtered by product URLs (e.g., microsoft.com)
-  → Response returned to user
-  → Thread deleted (stateless)
-```
-
-**Document Search Flow:**
-```
-User: "What's in the policy document?"
-  → Root Agent (routes to knowledge base)
-  → Backend queries Azure AI Search
-  → Hybrid search (keyword + vector + semantic)
-  → Top-K chunks retrieved with metadata
-  → GPT-4.1-nano synthesizes answer
-  → Citations included in response
-```
-
-**Database Operation Flow:**
-```
-User: "Update my address to..."
-  → Root Agent (routes to database agent)
-  → Backend validates customer context
-  → Cosmos DB update operation
-  → Confirmation returned to user
-```
-
 ## Architecture Diagram
 
 ![Architecture Diagram](./docs/images/architecture.png)
@@ -499,32 +429,10 @@ This project is licensed under the MIT License. See [LICENSE.md](LICENSE.md) for
 - [Azure Samples: chat-with-your-data-solution-accelerator](https://github.com/Azure-Samples/chat-with-your-data-solution-accelerator)
 - [AOAI ContactCenterDemo](https://github.com/HaoZhang615/AOAI_ContactCenterDemo)
 
-## Migration from Legacy Architecture
-
-This project has been **refactored from Streamlit + Chainlit to FastAPI + React**. Key improvements:
-
-| Component | Legacy (Streamlit/Chainlit) | Current (FastAPI/React) |
-|-----------|----------------------------|-------------------------|
-| **Frontend** | Streamlit (Python-based UI) | React + TypeScript (modern SPA) |
-| **Backend** | Chainlit (websocket wrapper) | FastAPI (async REST + WebSocket) |
-| **Web Search** | Bing Search V7 API (direct calls) | AI Foundry agent (MCP server wrapper) |
-| **Agent Orchestration** | Sequential function calls | Multi-agent service with tool routing |
-| **Deployment** | Single container | Multi-container (frontend, backend, MCP server) |
-| **Authentication** | API keys in config | Managed identity + Key Vault |
-| **Scalability** | Limited by Streamlit | Auto-scaling with Container Apps |
-
-**Benefits of Refactoring:**
-- ✅ **Better Performance**: Async FastAPI vs synchronous Streamlit
-- ✅ **Type Safety**: TypeScript frontend vs dynamic Python UI
-- ✅ **Modern UX**: React components vs Streamlit widgets
-- ✅ **Enterprise Ready**: Managed identity, Key Vault, RBAC
-- ✅ **Scalable**: Container Apps auto-scaling
-- ✅ **Maintainable**: Separation of concerns (frontend/backend/MCP)
 
 ## to-do
 - [ ] Add demo video
-- [ ] Implement conversation logging to Cosmos DB (AI_Conversations container)
-- [ ] Add Power BI dashboard integration for post-call analytics
-- [ ] Add conversation transcription download feature
+- [X] Implement conversation logging to Cosmos DB (AI_Conversations container)
+- [X] Add conversation transcription download feature
 - [ ] Implement customer authentication flow
-- [ ] Add support for multiple languages in voice interaction
+- [ ] Add image input support in voice interaction
