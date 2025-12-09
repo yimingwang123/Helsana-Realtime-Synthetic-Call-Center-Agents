@@ -1,0 +1,11 @@
+[
+  {
+    "customerId": "test_customer_001",
+    "name": "Max Mustermann",
+    "versicherungsnummer": "CH-7608342243202",
+    "geburtstag": "2001-11-28",
+    "adresse": "Bahnhofstrasse 1, 8001 Zürich",
+    "email": "max.mustermann@example.com",
+    "telefon": "+41791234567"
+  }
+]

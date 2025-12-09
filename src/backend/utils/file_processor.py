@@ -15,8 +15,7 @@ from azure.search.documents.indexes.models import (
     AzureOpenAIEmbeddingSkill,
     AzureOpenAIVectorizerParameters,
     AzureOpenAIVectorizer,
-    AIServicesAccountKey,
-    AIServicesAccountIdentity,
+    # AIServicesAccountIdentity,  # Removed in newer SDK versions
     DocumentIntelligenceLayoutSkill,
     FieldMapping,
     HnswAlgorithmConfiguration,
@@ -266,14 +265,10 @@ def setup_index(
                         projection_mode=IndexProjectionMode.SKIP_INDEXING_PARENT_DOCUMENTS
                     )
                 ),
-                cognitive_services_account=AIServicesAccountKey(
-                    key=ai_services_key,
+                cognitive_services_account=AIServicesAccountIdentity(
+                    identity=SearchIndexerDataUserAssignedIdentity(resource_id=uami_id),
                     subdomain_url=ai_services_endpoint
-                    ) if ai_services_key else
-                            AIServicesAccountIdentity(
-                                identity=SearchIndexerDataUserAssignedIdentity(resource_id=uami_id),
-                                subdomain_url=ai_services_endpoint
-                            ),
+                ) if uami_id else None,
                 )
                 )
 

@@ -48,6 +48,13 @@ except Exception as e:
     logger.error(f"Failed to import root_assistant: {e}")
     root_assistant = None
 
+try:
+    from agents.verification_agent import verification_agent
+    logger.info("Successfully imported verification_agent")
+except Exception as e:
+    logger.error(f"Failed to import verification_agent: {e}")
+    verification_agent = None
+
 _AGENT_ID_PATTERN = re.compile(r"assistant", re.IGNORECASE)
 
 
@@ -301,6 +308,13 @@ class AgentOrchestrator:
 
     def initialise_agents(self, customer_id: str) -> None:
         """Register core agents for the supplied customer identifier."""
+        # 🔐 FIRST: Register verification agent - MUST be called first
+        if verification_agent:
+            self.assistant_service.register_agent(verification_agent(customer_id))
+            logger.info("🔐 Registered identity verification agent (MANDATORY FIRST)")
+        else:
+            logger.error("❌ verification_agent not available - SECURITY RISK!")
+        
         if get_internal_kb_agent:
             # Get fresh agent definition with current topics from AI Search index
             # This ensures the description reflects the latest indexed documents

@@ -9,6 +9,7 @@ from azure.cosmos import CosmosClient, PartitionKey, exceptions
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from datetime import datetime, timedelta
 from utils import load_dotenv_from_azd
+from services.identity_data_generator import get_identity_data_generator
 
 # Set up logger for data synthesizer
 logger = logging.getLogger(__name__)
@@ -183,6 +184,11 @@ class DataSynthesizer:
             ('Cosmos_HumanConversations', self.containers['human_conversations'])
         ]:
             self.save_json_files_to_cosmos_db(os.path.join(self.base_dir, folder), container)
+        
+        # 🔐 GENERATE IDENTITY VERIFICATION DATA AFTER CUSTOMERS ARE IN COSMOS DB
+        logger.info("🔐 Generating identity verification data for all customers...")
+        self.generate_identity_data_for_all_customers()
+        
         logger.info("Data synthesis completed successfully!")
 
     def create_product_and_url_list(self, company_name, number_of_product):
@@ -247,7 +253,9 @@ class DataSynthesizer:
             logger.info(f"Document {document_name} has been successfully created!")
         
         # Update the JSON files with customer_id and id fields
+        # Identity verification data will be generated AFTER uploading to Cosmos DB
         directory = os.path.join(self.base_dir, "Cosmos_Customer")
+        
         for filename in os.listdir(directory):
             file_path = os.path.join(directory, filename)
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -258,6 +266,43 @@ class DataSynthesizer:
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(customer_profile, f, ensure_ascii=False, indent=4)
             logger.info(f"Document {filename} has been successfully updated!")
+    
+    def generate_identity_data_for_all_customers(self):
+        """
+        Generate identity verification data for all customers in Cosmos DB.
+        This should be called AFTER customers are uploaded to Cosmos DB.
+        """
+        try:
+            # Get identity generator with Cosmos DB client
+            from ..services.identity_data_generator import IdentityDataGenerator
+            identity_generator = IdentityDataGenerator(cosmos_client=self.cosmos_client)
+            
+            # Query all customers from Cosmos DB
+            customer_container = self.containers['customer']
+            query = "SELECT * FROM c"
+            customers = list(customer_container.query_items(
+                query=query,
+                enable_cross_partition_query=True
+            ))
+            
+            logger.info(f"Found {len(customers)} customers in Cosmos DB")
+            
+            # Generate identity data for each customer
+            success_count = 0
+            for customer in customers:
+                try:
+                    identity_data = identity_generator.generate_identity_data_from_cosmos_customer(customer)
+                    logger.info(f"✅ Identity data generated for {customer.get('first_name')} {customer.get('last_name')}")
+                    logger.info(f"   Versicherungsnummer: {identity_data['identity_data']['versicherungsnummer']}")
+                    success_count += 1
+                except Exception as e:
+                    logger.error(f"❌ Failed to generate identity data for {customer.get('customer_id', 'unknown')}: {e}")
+            
+            logger.info(f"🎉 Identity generation complete: {success_count}/{len(customers)} customers")
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to generate identity data for customers: {e}")
+            logger.exception(e)
 
     def synthesize_product_profiles(self, company_name):
         producturls_file_path = os.path.join(self.base_dir, "Cosmos_ProductUrl", f"{company_name}_products_and_urls.json")

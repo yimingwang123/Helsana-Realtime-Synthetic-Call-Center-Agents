@@ -1,0 +1,50 @@
+{
+  "questions": [
+    {
+      "id": "SQ001",
+      "question": "In welcher Stadt wurden Sie geboren?",
+      "category": "personal"
+    },
+    {
+      "id": "SQ002",
+      "question": "Wie lautet der Mädchenname Ihrer Mutter?",
+      "category": "family"
+    },
+    {
+      "id": "SQ003",
+      "question": "Wie hiess Ihr erstes Haustier?",
+      "category": "personal"
+    },
+    {
+      "id": "SQ004",
+      "question": "An welcher Schule haben Sie Ihre Matura gemacht?",
+      "category": "education"
+    },
+    {
+      "id": "SQ005",
+      "question": "Was war Ihr erstes Auto (Marke)?",
+      "category": "personal"
+    },
+    {
+      "id": "SQ006",
+      "question": "In welcher Strasse haben Sie als Kind gewohnt?",
+      "category": "personal"
+    }
+  ],
+  "customer_answers": {
+    "test_customer_001": [
+      {
+        "questionId": "SQ005",
+        "answer": "Volkswagen"
+      },
+      {
+        "questionId": "SQ002",
+        "answer": "Keller"
+      },
+      {
+        "questionId": "SQ006",
+        "answer": "Hauptstrasse"
+      }
+    ]
+  }
+}

@@ -55,6 +55,10 @@ class RealtimeHandler:
         self.session_state: Dict[str, Dict[str, Any]] = {}
         self.tool_call_timeout = float(os.getenv("TOOL_CALL_TIMEOUT_SECONDS", "15"))
         
+        # 🔐 VERIFICATION STATE TRACKING
+        self.verification_status: Dict[str, bool] = {}  # session_id -> verified
+        self.verification_attempts: Dict[str, int] = {}  # session_id -> attempt_count
+        
         # Verify AgentOrchestrator is properly initialized
         if self.agent_orchestrator.assistant_service is None:
             logging.error("AgentOrchestrator.assistant_service is None!")
@@ -160,17 +164,50 @@ class RealtimeHandler:
         if customer_id:
             self.ensure_customer_initialized(customer_id)
         
-        # Start with root agent configuration
-        root_agent = self.agent_orchestrator.assistant_service.get_agent("root")
-        if root_agent:
-            session["instructions"] = root_agent.get("system_message", session.get("instructions"))
-            if session_id:
-                self.active_agents[session_id] = root_agent.get("id", "root")
+        # 🔐 CHECK VERIFICATION STATUS - ENFORCE VERIFICATION GATE
+        is_verified = self.verification_status.get(session_id, False)
+        
+        # Initialize root_tools to avoid UnboundLocalError
+        root_tools = None
+        
+        if not is_verified:
+            # MANDATORY: Customer MUST verify identity FIRST
+            logging.info(f"🔐 Session {session_id} NOT VERIFIED - Injecting verification agent")
             
-        # Get tools for root agent (includes other agents as tools)
-        root_tools = self.agent_orchestrator.assistant_service.get_tools_for_agent("root")
-        if root_tools:
-            session["tools"] = root_tools
+            # Initialize verification tracking
+            if session_id not in self.verification_attempts:
+                self.verification_attempts[session_id] = 0
+            
+            # Get verification agent configuration
+            verification_agent = self.agent_orchestrator.assistant_service.get_agent("Assistant_Verification")
+            if verification_agent:
+                session["instructions"] = verification_agent.get("system_message", session.get("instructions"))
+                if session_id:
+                    self.active_agents[session_id] = "Assistant_Verification"
+                
+                # Get tools for verification agent
+                verification_tools = self.agent_orchestrator.assistant_service.get_tools_for_agent("Assistant_Verification")
+                if verification_tools:
+                    session["tools"] = verification_tools
+                    
+                logging.info("✅ Verification agent injected - customer must verify before proceeding")
+            else:
+                logging.error("❌ Verification agent not found - SECURITY RISK!")
+        else:
+            # Customer is verified - allow normal agent operation
+            logging.info(f"✅ Session {session_id} is VERIFIED - Using root agent")
+            
+            # Start with root agent configuration
+            root_agent = self.agent_orchestrator.assistant_service.get_agent("root")
+            if root_agent:
+                session["instructions"] = root_agent.get("system_message", session.get("instructions"))
+                if session_id:
+                    self.active_agents[session_id] = root_agent.get("id", "root")
+                
+            # Get tools for root agent (includes other agents as tools)
+            root_tools = self.agent_orchestrator.assistant_service.get_tools_for_agent("root")
+            if root_tools:
+                session["tools"] = root_tools
             
         # Merge with default configuration, giving priority to frontend settings
         # This ensures voice and other user preferences are preserved
@@ -312,6 +349,26 @@ class RealtimeHandler:
                     ),
                     timeout=self.tool_call_timeout,
                 )
+                
+                # 🔐 TRACK VERIFICATION STATUS
+                # Check if this was a successful verification call
+                if name == "verify_security_answers":
+                    try:
+                        # Parse the result to check authentication status
+                        if result.get("type") == "conversation.item.create":
+                            output_str = result.get("item", {}).get("output", "{}")
+                            output_data = json.loads(output_str) if isinstance(output_str, str) else output_str
+                            
+                            if output_data.get("status") == "AUTHENTICATED":
+                                # Customer is now VERIFIED
+                                self.verification_status[session_id] = True
+                                logging.info(f"✅ Session {session_id} is now VERIFIED - switching to root agent")
+                                
+                                # Trigger agent switch to root agent
+                                # This will be handled in the next session.update
+                    except Exception as e:
+                        logging.error(f"Error parsing verification result: {e}")
+                        
             except asyncio.TimeoutError:
                 logger.error(
                     f"[Session:{session_id}][Agent:{current_agent_id}] "

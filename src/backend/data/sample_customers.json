@@ -1,0 +1,65 @@
+[
+  {
+    "customerId": "CUST001",
+    "name": "Hans Müller",
+    "versicherungsnummer": "CH-7601234567890",
+    "geburtstag": "1985-03-15",
+    "adresse": "Bahnhofstrasse 12, 8001 Zürich",
+    "email": "hans.mueller@example.com",
+    "telefon": "+41 44 123 45 67"
+  },
+  {
+    "customerId": "CUST002",
+    "name": "Maria Schmidt",
+    "versicherungsnummer": "CH-7609876543210",
+    "geburtstag": "1990-07-22",
+    "adresse": "Rathausplatz 5, 3011 Bern",
+    "email": "maria.schmidt@example.com",
+    "telefon": "+41 31 987 65 43"
+  },
+  {
+    "customerId": "CUST003",
+    "name": "Peter Weber",
+    "versicherungsnummer": "CH-7601122334455",
+    "geburtstag": "1978-11-08",
+    "adresse": "Seestrasse 89, 6006 Luzern",
+    "email": "peter.weber@example.com",
+    "telefon": "+41 41 234 56 78"
+  },
+  {
+    "customerId": "CUST004",
+    "name": "Anna Keller",
+    "versicherungsnummer": "CH-7605544332211",
+    "geburtstag": "1995-02-14",
+    "adresse": "Hauptstrasse 45, 9000 St. Gallen",
+    "email": "anna.keller@example.com",
+    "telefon": "+41 71 345 67 89"
+  },
+  {
+    "customerId": "CUST005",
+    "name": "Thomas Zimmermann",
+    "versicherungsnummer": "CH-7602233445566",
+    "geburtstag": "1982-09-30",
+    "adresse": "Helvetiastrasse 23, 4051 Basel",
+    "email": "thomas.zimmermann@example.com",
+    "telefon": "+41 61 456 78 90"
+  },
+  {
+    "customerId": "test_customer_verify_001",
+    "name": "Anna Meier",
+    "versicherungsnummer": "CH-7671355403813",
+    "geburtstag": "1962-06-01",
+    "adresse": "Hauptstrasse 10, 3000 Bern",
+    "email": "anna.meier@example.com",
+    "telefon": "+41791234567"
+  },
+  {
+    "customerId": "mock_synth_001",
+    "name": "Thomas Weber",
+    "versicherungsnummer": "CH-7688078324211",
+    "geburtstag": "1950-03-01",
+    "adresse": "Lindenstrasse 5, 4051 Basel",
+    "email": "thomas.weber@example.com",
+    "telefon": "+41791234567"
+  }
+]

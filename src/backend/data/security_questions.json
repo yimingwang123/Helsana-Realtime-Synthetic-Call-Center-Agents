@@ -1,0 +1,134 @@
+{
+  "questions": [
+    {
+      "id": "SQ001",
+      "question": "In welcher Stadt wurden Sie geboren?",
+      "category": "personal"
+    },
+    {
+      "id": "SQ002",
+      "question": "Wie lautet der Mädchenname Ihrer Mutter?",
+      "category": "family"
+    },
+    {
+      "id": "SQ003",
+      "question": "Wie hiess Ihr erstes Haustier?",
+      "category": "personal"
+    },
+    {
+      "id": "SQ004",
+      "question": "An welcher Schule haben Sie Ihre Matura gemacht?",
+      "category": "education"
+    },
+    {
+      "id": "SQ005",
+      "question": "Was war Ihr erstes Auto (Marke)?",
+      "category": "personal"
+    },
+    {
+      "id": "SQ006",
+      "question": "In welcher Strasse haben Sie als Kind gewohnt?",
+      "category": "personal"
+    }
+  ],
+  "customer_answers": {
+    "CUST001": [
+      {
+        "questionId": "SQ001",
+        "answer": "Bern"
+      },
+      {
+        "questionId": "SQ002",
+        "answer": "Fischer"
+      },
+      {
+        "questionId": "SQ003",
+        "answer": "Rex"
+      }
+    ],
+    "CUST002": [
+      {
+        "questionId": "SQ001",
+        "answer": "Zürich"
+      },
+      {
+        "questionId": "SQ004",
+        "answer": "Gymnasium Bern"
+      },
+      {
+        "questionId": "SQ005",
+        "answer": "Volkswagen"
+      }
+    ],
+    "CUST003": [
+      {
+        "questionId": "SQ002",
+        "answer": "Meier"
+      },
+      {
+        "questionId": "SQ003",
+        "answer": "Luna"
+      },
+      {
+        "questionId": "SQ006",
+        "answer": "Bahnhofstrasse"
+      }
+    ],
+    "CUST004": [
+      {
+        "questionId": "SQ001",
+        "answer": "St. Gallen"
+      },
+      {
+        "questionId": "SQ003",
+        "answer": "Milo"
+      },
+      {
+        "questionId": "SQ005",
+        "answer": "Toyota"
+      }
+    ],
+    "CUST005": [
+      {
+        "questionId": "SQ002",
+        "answer": "Huber"
+      },
+      {
+        "questionId": "SQ004",
+        "answer": "Realgymnasium Basel"
+      },
+      {
+        "questionId": "SQ006",
+        "answer": "Lindenberg"
+      }
+    ],
+    "test_customer_verify_001": [
+      {
+        "questionId": "SQ001",
+        "answer": "Basel"
+      },
+      {
+        "questionId": "SQ002",
+        "answer": "Schmidt"
+      },
+      {
+        "questionId": "SQ005",
+        "answer": "Ford"
+      }
+    ],
+    "mock_synth_001": [
+      {
+        "questionId": "SQ006",
+        "answer": "Bergstrasse"
+      },
+      {
+        "questionId": "SQ003",
+        "answer": "Lucy"
+      },
+      {
+        "questionId": "SQ005",
+        "answer": "Opel"
+      }
+    ]
+  }
+}
